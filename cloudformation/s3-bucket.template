@@ -1,5 +1,6 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description": "A Simple S3 CFN Template",
   "Resources" : {
     "S3Bucket" : {
       "Type" : "AWS::S3::Bucket",
@@ -10,7 +11,7 @@
   "Outputs" : {
     "S3BucketName" : {
       "Value" : {"Ref": "S3Bucket"},
-      "Description" : "Name of S3 bucket"
+      "Description" : "a-first-s3-bucket"
     }
   }
 }

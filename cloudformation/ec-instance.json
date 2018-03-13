@@ -1,0 +1,20 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "A simple EC2 instance",
+  "Resources" : {
+    "MyEC2Instance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Ref" : "AmiId" },
+        "InstanceType" : "t1.micro"
+      }
+    }
+  },
+  "Parameters": {
+    "AmiId" : {
+      "Description": "The AMI Id",
+      "Type" : "String",
+      "Default" : "ami-f2d3638a"
+    }
+  }
+}

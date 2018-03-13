@@ -1,24 +1,50 @@
 {
-      "AWSTemplateFormatVersion" : "2010-09-09",
-      "Parameters" : {
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "A named S3 bucket CFN template",
+  "Parameters": {
+    "BucketName1": {
+      "Description": "Name of MyS3Bucket",
+      "Type": "String",
+      "Default": "cloudninja-master-token"
+    },
+    "BucketName2": {
+      "Description": "Name of MyS3Bucket",
+      "Type": "String",
+      "Default": "cloudninja-master-token2"
+    }
+  },
+  "Resources": {
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
         "BucketName": {
-          "Description": "Name of MyS3Bucket",
-          "Type": "String",
-          "Default": "mys3bucketacloudgurutraining"
+          "Ref": "BucketName1"
         }
-      },
-      "Resources" : {
-          "S3Bucket" : {
-             "Type" : "AWS::S3::Bucket",
-             "Properties" : {
-              "BucketName": { "Ref": "BucketName" }
-             }
-         }
-      },
-      "Outputs" : {
-          "S3BucketName" : {
-                "Value" : {"Ref": "S3Bucket"},
-                "Description" : "Name of S3 bucket"
-          }
       }
+    },
+    "S3Bucket2": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "BucketName2"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "S3BucketName": {
+      "Value": {
+        "Ref": "S3Bucket"
+      },
+      "Description": "Name of S3 bucket"
+    },
+    "S3BucketName2": {
+      "Value": {
+        "Ref": "S3Bucket2"
+      },
+      "Description": "Name of S3 bucket"
+    }
+  }
 }
+
+
