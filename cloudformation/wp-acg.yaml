@@ -14,7 +14,17 @@ Resources:
       Properties:
          ImageId: ami-d874e0a0
          InstanceType: t2.micro
+         SubnetId: subnet-9fbf6ed7
    S3:
       Type: "AWS::S3::Bucket"
       Properties:
          BucketName: wp-148437
+Parameters:
+   Instancesize:
+      Type: String
+      Default: t2.micro
+      AllowedValues:
+        - t2.micro
+        - t2.small
+        - t2.medium
+      Description: Instance sizes
