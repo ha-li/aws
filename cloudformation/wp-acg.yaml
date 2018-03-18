@@ -4,17 +4,36 @@ Resources:
       Properties:
          AllocatedStorage: 5
          DBInstanceClass: !FindInMap [EnvSize, !Ref EnvironmentSize, DB]
-         DBName: wordpress
+         DBName: !Ref DatabaseName
          StorageType: gp2
          Engine: MySQL
-         MasterUsername: wordpress
-         MasterUserPassword: wordpress
+         MasterUsername: !Ref DatabaseUser
+         MasterUserPassword: !Ref DatabasePassword
    EC2:
       Type: "AWS::EC2::Instance"
       Properties:
-         ImageId: ami-d874e0a0
+         ImageId: !FindInMap [AmiMap, !Ref "AWS::Region", amalinx]
          InstanceType: !FindInMap [EnvSize, !Ref EnvironmentSize, EC2]
-         SubnetId: subnet-9fbf6ed7
+         #SubnetId: subnet-9fbf6ed7
+         KeyName: AdvancedCFN
+         UserData:
+            "Fn::Base64":
+                !Sub |
+                   #!/bin/bash
+                   yum install httpd php mysql php-mysql -y
+                   yum update -y
+                   chkconfig httpd on
+                   service httpd on
+                   service httpd start
+                   cd /var/www/html
+                   wget https://wordpress.org/latest.tar.gz
+                   tar -zxvf latest.tar.gz --strip 1
+                   rm latest.tar.gz
+                   cp wp-config-sample.php wp-config.php
+                   sed -i 's/database_name_here/${DatabaseName}/g' wp-config.php
+                   sed -i 's/localhost/${DB.Endpoint.Address}/g' wp-config.php
+                   sed -i 's/username_here/${DatabaseUser}/g' wp-config.php
+                   sed -i 's/password_here/${DatabasePassword}/g' wp-config.php
    S3:
       Type: "AWS::S3::Bucket"
       Properties:
@@ -30,6 +49,37 @@ Mappings:
       LARGE:
          "EC2": "t2.medium"
          "DB": "db.t2.medium"
+   AmiMap:
+      us-east-1:
+         "amalinx": "ami-1853ac65"
+      us-east-2:
+         "amalinx": "ami-25615740"
+      us-west-1:
+         "amalinx": "ami-bf5540df"
+      us-west-2:
+         "amalinx": "ami-d874e0a0"
+      ap-south-1:    # Mumbai
+         "amalinx": "ami-7c87d913"
+      ap-northeast-2:   # seoul
+         "amalinx": "ami-5e1ab730"
+      ap-southeast-1:
+         "amalinx": "ami-e2adf99e"
+      ap-southeast-2:
+         "amalinx": "ami-43874721"
+      ap-northeast-1:
+         "amalinx": "ami-a77c30c1"
+      ca-central-1:  # Canada Central
+         "amalinx": "ami-5b55d23f"
+      eu-central-1:
+         "amalinx": "ami-ac442ac3"
+      eu-west-1:
+         "amalinx": "ami-3bfab942"
+      eu-west-2:
+         "amalinx": "ami-dff017b8"
+      eu-west-3:
+         "amalinx": "ami-4f55e332"
+      sa-east-1:
+         "amalinx": "ami-5339733f"
 Parameters:
    EnvironmentSize:
       Type: String
@@ -38,7 +88,17 @@ Parameters:
         - "SMALL"
         - "MEDIUM"
         - "LARGE"
-      Description: Environment sizes
+      Description: Environment sizes (S,M,L)
    BucketName:
       Type: String
+   DatabaseName:
+      Type: String
+      Default: wordpress
+   DatabaseUser:
+      Type: String
+      Default: wordpress
+   DatabasePassword:
+      Type: String
+      Default: wordpress
+      NoEcho: true
 
