@@ -16,7 +16,6 @@ Resources:
          InstanceType: !FindInMap [EnvSize, !Ref EnvironmentSize, EC2]
          #SubnetId: subnet-9fbf6ed7
          KeyName: AdvancedCFN
-         DependsOn: "DB"
          UserData:
             "Fn::Base64":
                 !Sub |
