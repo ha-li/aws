@@ -23,7 +23,6 @@ Resources:
                    yum install httpd php mysql php-mysql -y
                    yum update -y
                    chkconfig httpd on
-                   service httpd on
                    service httpd start
                    cd /var/www/html
                    wget https://wordpress.org/latest.tar.gz
@@ -40,13 +39,13 @@ Resources:
          BucketName: !Ref BucketName
 Mappings:
    EnvSize:
-      SMALL:
+      S:
          "EC2": "t2.micro"
          "DB": "db.t2.micro"
-      MEDIUM:
+      M:
          "EC2": "t2.small"
          "DB": "db.t2.small"
-      LARGE:
+      L:
          "EC2": "t2.medium"
          "DB": "db.t2.medium"
    AmiMap:
@@ -83,11 +82,11 @@ Mappings:
 Parameters:
    EnvironmentSize:
       Type: String
-      Default: "MEDIUM"
+      Default: "M"
       AllowedValues:
-        - "SMALL"
-        - "MEDIUM"
-        - "LARGE"
+        - "S"
+        - "M"
+        - "L"
       Description: Environment sizes (S,M,L)
    BucketName:
       Type: String
