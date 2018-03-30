@@ -1,0 +1,169 @@
+Resources:
+   EC2:
+      Type: "AWS::EC2::Instance"
+      Properties:
+         ImageId: !FindInMap [AmiMap, !Ref "AWS::Region", amalinx]
+         InstanceType: !FindInMap [EnvSize, !Ref EnvironmentSize, EC2]
+         #SubnetId: subnet-9fbf6ed7
+         KeyName: AdvancedCFN
+         UserData:
+            "Fn::Base64":
+               !Sub |
+                  #!/bin/bash
+                  yum update -y aws-cfn-bootstrap
+                  /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2 --configsets wordpress --region ${AWS::Region}
+                  yum -y update
+      Metadata:
+         AWS::CloudFormation::Init:
+            configSets:
+               wordpress:
+                  - "configure_cfn"
+                  - "install_wordpress"
+                  - "config_wordpress"
+                  - "create_groups"
+                  - "create_users"
+            configure_cfn:
+               files:
+                  /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+                     content: !Sub |
+                        [cfn-auto-reloader-hook]
+                        triggers=post.update
+                        path=Resources.EC2.Metadata.AWS::CloudFormation::Init
+                        action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2 --configsets wordpress --region ${AWS::Region}
+                     mode: "00400"
+                     owner: root
+                     group: root
+                  /etc/cfn/cfn-hup.conf:
+                     content: !Sub |
+                        [main]
+                        stack=${AWS::StackId}
+                        region=${AWS::Region}
+                        verbose=true
+                        interval=5
+                     mode: "00400"
+                     owner: root
+                     group: root
+                  /var/www/html/index2.html:
+                     content: !Ref TestString
+               services:
+                  sysvinit:
+                     cfn-hup:
+                        enabled: "true"
+                        ensureRunning: "true"
+                        files:
+                           - "/etc/cfn/cfn-hup.conf"
+                           - "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+            install_wordpress:
+               packages:
+                  yum:
+                     httpd: []
+                     php: []
+                     mysql: []
+                     php-mysql: []
+               sources:
+                  /var/www/html: "http://wordpress.org/latest.tar.gz"
+               services:
+                  sysvint:
+                     httpd:
+                        enabled: "true"
+                        ensureRunning: "true"
+            config_wordpress:
+               commands:
+                  01_clone_config:
+                     cwd: "/var/www/html/wordpress"
+                     test: "test ! -e /var/www/html/wordpress/wp-config.php"
+                     command: "cp wp-config-sample.php wp-config.php"
+                  03_inject_dbname:
+                     cwd: "/var/www/html/wordpress"
+                     command: !Sub |
+                        sed -i 's/localhost/${DatabaseName}/g' wp-config.php
+                  04_inject_dbuser:
+                     cwd: "/var/www/html/wordpress"
+                     command: !Sub |
+                        sed -i 's/username_here/${DatabaseUser}/g' wp-config.php
+                  05_inject_dbpassword:
+                     cwd: "/var/www/html/wordpress"
+                     command: !Sub |
+                        sed -i 's/password_here/${DatabasePassword}/g' wp-config.php
+            create_groups:
+               groups:
+                  serverlessgroup:
+                     gid: "101"
+            create_users:
+               users:
+                 lambda_user:
+                    groups:
+                       - "serverlessgroup"
+                    uid: "911"
+                    homeDir: "/home/lambda_user"
+   S3:
+      Type: "AWS::S3::Bucket"
+      Properties:
+         BucketName: !Ref BucketName
+Mappings:
+   EnvSize:
+      S:
+         "EC2": "t2.micro"
+         "DB": "db.t2.micro"
+      M:
+         "EC2": "t2.small"
+         "DB": "db.t2.small"
+      L:
+         "EC2": "t2.medium"
+         "DB": "db.t2.medium"
+   AmiMap:
+      us-east-1:
+         "amalinx": "ami-1853ac65"
+      us-east-2:
+         "amalinx": "ami-25615740"
+      us-west-1:
+         "amalinx": "ami-bf5540df"
+      us-west-2:
+         "amalinx": "ami-d874e0a0"
+      ap-south-1:    # Mumbai
+         "amalinx": "ami-7c87d913"
+      ap-northeast-2:   # seoul
+         "amalinx": "ami-5e1ab730"
+      ap-southeast-1:
+         "amalinx": "ami-e2adf99e"
+      ap-southeast-2:
+         "amalinx": "ami-43874721"
+      ap-northeast-1:
+         "amalinx": "ami-a77c30c1"
+      ca-central-1:  # Canada Central
+         "amalinx": "ami-5b55d23f"
+      eu-central-1:
+         "amalinx": "ami-ac442ac3"
+      eu-west-1:
+         "amalinx": "ami-3bfab942"
+      eu-west-2:
+         "amalinx": "ami-dff017b8"
+      eu-west-3:
+         "amalinx": "ami-4f55e332"
+      sa-east-1:
+         "amalinx": "ami-5339733f"
+Parameters:
+   EnvironmentSize:
+      Type: String
+      Default: "S"
+      AllowedValues:
+        - "S"
+        - "M"
+        - "L"
+      Description: Environment sizes (S,M,L)
+   BucketName:
+      Type: String
+   DatabaseName:
+      Type: String
+      Default: wordpress
+   DatabaseUser:
+      Type: String
+      Default: wordpress
+   DatabasePassword:
+      Type: String
+      Default: wordpress
+      NoEcho: true
+   TestString:
+      Type: String
+      Default: test9
+
