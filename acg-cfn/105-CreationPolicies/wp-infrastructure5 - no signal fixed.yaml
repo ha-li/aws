@@ -82,6 +82,7 @@ Resources:
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2 --configsets wordpress --region ${AWS::Region}
             yum -y update
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2 --region ${AWS::Region}
+
     CreationPolicy:
       ResourceSignal:
         Count: "1"
@@ -162,4 +163,3 @@ Resources:
                 sed -i 's/password_here/${DatabasePassword}/g' wp-config.php
   S3:
     Type: "AWS::S3::Bucket"
-    DeletionPolicy: Retain
