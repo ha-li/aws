@@ -164,4 +164,8 @@ Resources:
                 sed -i 's/password_here/${DatabasePassword}/g' wp-config.php
   S3:
     Type: "AWS::S3::Bucket"
-    DeletionPolicy: Retain
+    DeletionPolicy: Delete
+Outputs:
+  URL:
+     Description: URL to WordPress site
+     Value: !Join ["", ["http://", !GetAtt EC2.PublicIp, "/wordpress/wp-admin/install.php"]]

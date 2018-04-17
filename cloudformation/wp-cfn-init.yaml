@@ -166,4 +166,8 @@ Parameters:
    TestString:
       Type: String
       Default: test9
+Outputs:
+   AllAZs:
+      Description: all availability zones
+      Value: !Join [ ":", !GetAZs '']
 
