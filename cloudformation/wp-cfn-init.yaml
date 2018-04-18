@@ -166,8 +166,16 @@ Parameters:
    TestString:
       Type: String
       Default: test9
+   EnvType:
+      Type: String
+      Default: nonprod
+Conditions:
+   IsProd: !Equals [!Ref EnvType, prod]
 Outputs:
    AllAZs:
       Description: all availability zones
       Value: !Join [ ":", !GetAZs '']
+   IsProduction:
+      Description: is this production
+      Value: !If [IsProd, "production", "non-production"]
 
