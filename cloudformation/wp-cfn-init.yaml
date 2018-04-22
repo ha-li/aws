@@ -98,8 +98,21 @@ Resources:
                     homeDir: "/home/lambda_user"
    S3:
       Type: "AWS::S3::Bucket"
+      Condition: IsProd
       Properties:
          BucketName: !Ref BucketName
+   DB:
+      Type: "AWS::RDS::DBInstance"
+      DeletionPolicy: Snapshot
+      Properties:
+         AllocatedStorage: 5
+         StorageType: gp2
+         DBInstanceClass: !FindInMap [EnvSize, !Ref EnvironmentSize, DB] # Dynamic mapping + Pseudo Parameter
+         DBName: !If [IsRestore, !Ref "AWS::NoValue", !Ref DatabaseName]
+         Engine: MySQL
+         MasterUsername: !If [IsRestore, !Ref "AWS::NoValue", !Ref DatabaseUser]
+         MasterUserPassword: !If [IsRestore, !Ref "AWS::NoValue", !Ref DatabasePassword]
+         DBSnapshotIdentifier: !Ref SnapToRestore
 Mappings:
    EnvSize:
       S:
@@ -169,8 +182,22 @@ Parameters:
    EnvType:
       Type: String
       Default: nonprod
+   IntuitCidr:
+      Type: String
+      Default: false
+      AllowedValues: [true, false]
+   SnapToRestore:
+      Type: String
+      Default: ""
+      Description: snapshot id to restore
 Conditions:
    IsProd: !Equals [!Ref EnvType, prod]
+   IsLarge:
+      !Equals [!Ref EnvironmentSize, "L"]
+   IsNotLarge:
+      !Not [!Equals [!Ref EnvironmentSize, "L"]]
+   IsRestore:
+      !Not [!Equals [!Ref SnapToRestore, ""]]
 Outputs:
    AllAZs:
       Description: all availability zones
